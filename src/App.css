@@ -1,0 +1,99 @@
+.app {
+  padding: 20px;
+  font-family: "Segoe UI", sans-serif;
+  text-align: center;
+}
+
+.title {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Wrapper for all cleaners */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+}
+
+/* Each cleaner item */
+.cleaner-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 1 250px; /* responsive flex size */
+  max-width: 300px;
+}
+
+button {
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 180px;
+}
+
+button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.spinner-container {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.spinner {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  background: conic-gradient(#ddd 0deg, #ddd 360deg);
+  color: #333;
+  animation: pulse 1s infinite alternate;
+}
+
+.spinner span {
+  background: white;
+  padding: 6px 10px;
+  border-radius: 50%;
+}
+
+.status {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #555;
+  font-style: italic;
+}
+
+@keyframes pulse {
+  from {
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+  to {
+    box-shadow: 0 0 14px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* 📱 Responsive: On small screens, stack items vertically */
+@media (max-width: 768px) {
+  .btn-group {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cleaner-item {
+    max-width: 100%;
+  }
+}

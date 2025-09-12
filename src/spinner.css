@@ -1,0 +1,55 @@
+/* SpinnerCounter.css */
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 50px auto;
+  font-family: Arial, sans-serif;
+}
+
+.spinner {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 10px solid #ddd;
+  border-top: 10px solid #3498db; /* main color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  transition: all 0.5s ease;
+}
+
+/* animation on completion */
+.spinner.complete {
+  animation: spinColor 1s linear infinite, scalePulse 0.5s ease-in-out infinite alternate;
+  border-top-color: #2ecc71; /* green alternative */
+}
+
+@keyframes spinColor {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes scalePulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.2); }
+}
+
+.spin-btn {
+  margin-top: 20px;
+  padding: 10px 25px;
+  background-color: #3498db;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.spin-btn:hover {
+  background-color: #2980b9;
+}

@@ -8,30 +8,69 @@ export default function App() {
     cookies: 100,
     cache: 100,
   });
+
   const [spinning, setSpinning] = useState({
     history: false,
     cookies: false,
     cache: false,
+    recycle: false,
   });
+
   const [status, setStatus] = useState({
     history: "",
     cookies: "",
     cache: "",
+    recycle: "",
   });
 
+  // ♻️ recycle bin items
+  const [recycleItems, setRecycleItems] = useState([]);
+
   const colors = {
-    history: "#f44336", // red
-    cookies: "#ff9800", // orange
-    cache: "#4cafef", // blue
+    history: "#f44336",
+    cookies: "#ff9800",
+    cache: "#4cafef",
+    recycle: "#4caf50",
+  };
+
+  // ✅ simulate real usage % at start
+  const updateStorageUsage = async () => {
+    if (navigator.storage && navigator.storage.estimate) {
+      const { usage, quota } = await navigator.storage.estimate();
+      const percent = Math.round((usage / quota) * 100);
+      const finalPercent = percent === 0 ? 100 : percent;
+
+      setProgress({
+        history: finalPercent,
+        cookies: finalPercent,
+        cache: finalPercent,
+      });
+    }
   };
 
   const handleClick = (type) => {
-    if (spinning[type]) return; // prevent multiple clicks
+    if (spinning[type]) return;
+
+    // ♻️ empty recycle bin completely
+    if (type === "recycle") {
+      if (recycleItems.length === 0) return;
+
+      setSpinning((prev) => ({ ...prev, recycle: true }));
+      setStatus((prev) => ({ ...prev, recycle: `Emptying recycle bin...` }));
+
+      setTimeout(() => {
+        setRecycleItems([]); // clear everything
+        setSpinning((prev) => ({ ...prev, recycle: false }));
+        setStatus((prev) => ({ ...prev, recycle: "Recycle Bin Emptied ✅" }));
+      }, 800);
+      return;
+    }
+
+    // 🧹 history / cookies / cache
     setSpinning((prev) => ({ ...prev, [type]: true }));
     setStatus((prev) => ({ ...prev, [type]: `Cleaning ${type}...` }));
 
     if (!chrome || !chrome.browsingData) {
-      console.log("chrome.browsingData API not available");
       setStatus((prev) => ({ ...prev, [type]: "❌ Not supported here" }));
       setSpinning((prev) => ({ ...prev, [type]: false }));
       return;
@@ -43,66 +82,76 @@ export default function App() {
       cache: { cache: true },
     };
 
+    // Perform cleanup
     chrome.browsingData.remove({ since: 0 }, dataMap[type], () => {
-      setTimeout(() => {
-        setStatus((prev) => ({
-          ...prev,
-          [type]: `${type.charAt(0).toUpperCase() + type.slice(1)} cleared ✅`,
-        }));
-      }, 1000);
+      // Animate from current % → 0
+      let current = progress[type];
+      const interval = setInterval(() => {
+        current -= 2;
+        if (current <= 0) {
+          current = 0;
+          clearInterval(interval);
+          setSpinning((prev) => ({ ...prev, [type]: false }));
+          setStatus((prev) => ({
+            ...prev,
+            [type]: `${type.charAt(0).toUpperCase() + type.slice(1)} cleared ✅`,
+          }));
+          setRecycleItems((prev) => [...prev, type]);
+        }
+        setProgress((prev) => ({ ...prev, [type]: current }));
+      }, 30);
     });
   };
 
-  // Animate progress (counting down)
+  // 🔄 initialize usage when mounted
   useEffect(() => {
-    const intervals = [];
-
-    Object.keys(spinning).forEach((type) => {
-      if (spinning[type]) {
-        const interval = setInterval(() => {
-          setProgress((prev) => {
-            let next = prev[type] - 2;
-            if (next < 0) next = 0;
-
-            if (next === 0) {
-              clearInterval(interval);
-              setSpinning((s) => ({ ...s, [type]: false }));
-            }
-
-            return { ...prev, [type]: next };
-          });
-        }, 30);
-        intervals.push(interval);
-      }
-    });
-
-    return () => intervals.forEach((i) => clearInterval(i));
-  }, [spinning]);
+    updateStorageUsage();
+  }, []);
 
   return (
     <div className="app">
       <h2 className="title">🧹 Cleaner</h2>
 
       <div className="btn-group">
-        {["history", "cookies", "cache"].map((type) => (
+        {["history", "cookies", "cache", "recycle"].map((type) => (
           <div key={type} className="cleaner-item">
             <button
-              style={{ background: colors[type] }}
+              style={{
+                background: colors[type],
+                opacity:
+                  type === "recycle" && recycleItems.length === 0 ? 0.6 : 1,
+                cursor:
+                  type === "recycle" && recycleItems.length === 0
+                    ? "not-allowed"
+                    : "pointer",
+              }}
               onClick={() => handleClick(type)}
+              disabled={type === "recycle" && recycleItems.length === 0}
             >
-              Clear {type.charAt(0).toUpperCase() + type.slice(1)}
+              {type === "recycle"
+                ? `Recycle Bin (${recycleItems.length})`
+                : `Clear ${type.charAt(0).toUpperCase() + type.slice(1)}`}
             </button>
 
             <div className="spinner-container">
               <div
                 className="spinner"
                 style={{
-                  background: `conic-gradient(${colors[type]} ${
-                    progress[type] * 3.6
-                  }deg, #ddd ${progress[type] * 3.6}deg)`,
+                  background:
+                    type === "recycle"
+                      ? `conic-gradient(${colors.recycle} ${
+                          (recycleItems.length / 10) * 360
+                        }deg, #ddd ${(recycleItems.length / 10) * 360}deg)`
+                      : `conic-gradient(${colors[type]} ${
+                          progress[type] * 3.6
+                        }deg, #ddd ${progress[type] * 3.6}deg)`,
                 }}
               >
-                <span>{progress[type]}%</span>
+                <span>
+                  {type === "recycle"
+                    ? recycleItems.length
+                    : `${progress[type]}%`}
+                </span>
               </div>
               <p className="status">{status[type]}</p>
             </div>
